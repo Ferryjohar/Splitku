@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "93509446273",
+    "project_id": "splitku",
+    "storage_bucket": "splitku.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:93509446273:android:4798e9f65dc00efa9a3b80",
+        "android_client_info": {
+          "package_name": "com.example.splitku"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLEdfKza-coBpw8Q7w9JIsLi80csZleQA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
