@@ -109,8 +109,15 @@ fun DashboardScreen(
                     title = group.groupName,
                     members = 0,
                     total = "Rp 0",
-                    colorPlaceholder = Color(0xFF8B5A2B)
+                    colorPlaceholder = Color(0xFF8B5A2B),
+
+                    onDeleteClick = {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            viewModel.deleteGroup(group)
+                        }
+                    }
                 )
+
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
@@ -264,7 +271,13 @@ fun JoinGroupCard(
 }
 
 @Composable
-fun GroupItemCard(title: String, members: Int, total: String, colorPlaceholder: Color) {
+fun GroupItemCard(
+    title: String,
+    members: Int,
+    total: String,
+    colorPlaceholder: Color,
+    onDeleteClick: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -305,7 +318,23 @@ fun GroupItemCard(title: String, members: Int, total: String, colorPlaceholder: 
                 }
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(text = "Total:", fontSize = 12.sp, color = Color.Gray)
+                IconButton(
+                    onClick = onDeleteClick
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = Color.Red,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Text(
+                    text = "Total:",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+
                 Text(
                     text = total,
                     fontWeight = FontWeight.Bold,
