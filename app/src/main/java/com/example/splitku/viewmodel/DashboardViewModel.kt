@@ -27,4 +27,7 @@ class DashboardViewModel(
     suspend fun addGroup(group: GroupEntity) {
         groupDao.insertGroup(group)
     }
+    suspend fun deleteGroup(group: GroupEntity) {
+        groupDao.deleteGroup(group)
+    }
 }
