@@ -14,4 +14,5 @@ interface GroupDao {
 
     @Query("SELECT * FROM groups")
     fun getAllGroups(): Flow<List<GroupEntity>>
+
 }
