@@ -24,7 +24,9 @@ import com.example.splitku.ui.LoginScreen
 import com.example.splitku.ui.RegisterScreen
 import com.example.splitku.viewmodel.AuthViewModel
 import com.example.splitku.viewmodel.LoginState
-
+import com.example.splitku.data.local.AppDatabase
+import com.example.splitku.viewmodel.DashboardViewModel
+import com.example.splitku.viewmodel.DashboardViewModelFactory
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,6 +43,11 @@ class MainActivity : ComponentActivity() {
                     val authViewModel: AuthViewModel = viewModel(
                         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
                     )
+                    val database = AppDatabase.getDatabase(context)
+                    val dashboardViewModel: DashboardViewModel = viewModel(
+                        factory = DashboardViewModelFactory(
+                            database.groupDao()
+                        ))
 
                     val loginState by authViewModel.loginState.collectAsState()
 
@@ -93,6 +100,7 @@ class MainActivity : ComponentActivity() {
                         )
                     } else if (currentScreen == "dashboard") {
                         DashboardScreen(
+                            viewModel = dashboardViewModel,
                             onLogoutClick = {
                                 authViewModel.logout()
                             }
