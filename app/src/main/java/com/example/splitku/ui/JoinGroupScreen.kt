@@ -1,0 +1,124 @@
+package com.example.splitku.ui
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun JoinGroupScreen(
+    onBackClick: () -> Unit
+) {
+
+    var inviteCode by remember {
+        mutableStateOf("")
+    }
+
+    Scaffold(
+
+        topBar = {
+            TopAppBar(
+
+                title = {
+                    Text(
+                        text = "Gabung Grup",
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
+
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = null
+                        )
+                    }
+                }
+            )
+        }
+
+    ) { paddingValues ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(20.dp)
+        ) {
+
+            Text(
+                text = "Punya Kode Undangan?",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1C64F2)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Masukkan 6 digit kode yang dibagikan oleh temanmu.",
+                color = Color.Gray,
+                fontSize = 14.sp
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedTextField(
+                value = inviteCode,
+                onValueChange = {
+                    inviteCode = it
+                },
+
+                placeholder = {
+                    Text(
+                        text = "ABC123",
+                        color = Color.Gray
+                    )
+                },
+
+                modifier = Modifier.fillMaxWidth(),
+
+                singleLine = true,
+
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = {
+
+                },
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp),
+
+                shape = RoundedCornerShape(14.dp),
+
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF1C64F2)
+                )
+            ) {
+
+                Icon(
+                    imageVector = Icons.Default.Group,
+                    contentDescription = null
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text("Gabung ke Grup")
+            }
+        }
+    }
+}

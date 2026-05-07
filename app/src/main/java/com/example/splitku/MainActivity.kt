@@ -27,6 +27,8 @@ import com.example.splitku.viewmodel.LoginState
 import com.example.splitku.data.local.AppDatabase
 import com.example.splitku.viewmodel.DashboardViewModel
 import com.example.splitku.viewmodel.DashboardViewModelFactory
+import com.example.splitku.ui.CreateGroupScreen
+import com.example.splitku.ui.JoinGroupScreen
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -103,6 +105,30 @@ class MainActivity : ComponentActivity() {
                             viewModel = dashboardViewModel,
                             onLogoutClick = {
                                 authViewModel.logout()
+                            }
+                            ,
+                            onAddGroupClick = {
+                                currentScreen = "create_group"
+                            }
+                            ,
+
+                            onJoinGroupClick = {
+                                currentScreen = "join_group"
+                            }
+                        )
+                    }
+                    else if (currentScreen == "create_group") {
+                        CreateGroupScreen(
+                            viewModel = dashboardViewModel,
+                            onBackClick = {
+                                currentScreen = "dashboard"
+                            }
+                        )
+                    }
+                    else if (currentScreen == "join_group") {
+                        JoinGroupScreen(
+                            onBackClick = {
+                                currentScreen = "dashboard"
                             }
                         )
                     }
