@@ -36,7 +36,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
-    onLogoutClick: () -> Unit
+    onLogoutClick: () -> Unit,
+    onJoinGroupClick: () -> Unit,
+    onAddGroupClick: () -> Unit
 ) {
     val groups by viewModel.groups.collectAsState()
 
@@ -46,13 +48,7 @@ fun DashboardScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        viewModel.addGroup(
-                            GroupEntity(
-                                groupName = "Group baru"
-                            )
-                        )
-                    }
+                    onAddGroupClick()
                 },
                 containerColor = Color(0xFFE5E7EB),
                 contentColor = Color.Black,
@@ -78,7 +74,11 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // 3. Card Gabung Grup
-            JoinGroupCard()
+            JoinGroupCard(
+                onClick = {
+                    onJoinGroupClick()
+                }
+            )
             Spacer(modifier = Modifier.height(24.dp))
 
             // 4. Header Grup Aktif
@@ -219,8 +219,11 @@ fun BalanceCard() {
 }
 
 @Composable
-fun JoinGroupCard() {
+fun JoinGroupCard(
+    onClick: () -> Unit
+) {
     Card(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(16.dp)),
