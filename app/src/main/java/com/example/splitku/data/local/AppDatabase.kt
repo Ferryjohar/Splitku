@@ -9,15 +9,17 @@ import com.example.splitku.data.local.dao.GroupDao
 import com.example.splitku.data.local.dao.UserDao
 import com.example.splitku.data.local.entity.ExpenseEntity
 import com.example.splitku.data.local.entity.GroupEntity
+import com.example.splitku.data.local.entity.MembersEntity
 import com.example.splitku.data.local.entity.UserEntity
 
 @Database(
     entities = [
         UserEntity::class,
         GroupEntity::class,
-        ExpenseEntity::class
+        ExpenseEntity::class,
+        MembersEntity::class
     ],
-    version = 2
+    version = 3
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao

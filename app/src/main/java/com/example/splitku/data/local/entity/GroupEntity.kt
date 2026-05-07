@@ -7,5 +7,8 @@ import androidx.room.PrimaryKey
 data class GroupEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val groupName: String
+    val groupName: String,
+    val ownerId: String, // user yang membuat group
+    val invateCode: String, // untuk qr atau join ke group
+    val createdAt: Long = System.currentTimeMillis()
 )

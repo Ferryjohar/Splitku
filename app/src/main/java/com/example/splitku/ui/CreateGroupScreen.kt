@@ -1,7 +1,6 @@
 package com.example.splitku.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -18,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.splitku.data.local.entity.GroupEntity
+import com.example.splitku.utils.generateInviteCode
 import com.example.splitku.viewmodel.DashboardViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +27,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun CreateGroupScreen(
     viewModel: DashboardViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onGroupCreated: (String) -> Unit
 ) {
 
     var groupName by remember {
@@ -252,7 +253,6 @@ fun CreateGroupScreen(
 
                         Button(
                             onClick = {
-
                                 if (memberName.isNotEmpty()) {
 
                                     members = members + memberName
@@ -370,15 +370,18 @@ fun CreateGroupScreen(
 
                     Button(
                         onClick = {
+                            val code = generateInviteCode()
                             if (groupName.isNotEmpty()) {
                                 CoroutineScope(Dispatchers.IO).launch {
                                     viewModel.addGroup(
                                         GroupEntity(
-                                            groupName = groupName
+                                            groupName = groupName,
+                                            invateCode = code,
+                                            ownerId = "user_id"
                                         )
                                     )
                                 }
-                                onBackClick()
+                                onGroupCreated(code)
                             }
                         },
                         modifier = Modifier
