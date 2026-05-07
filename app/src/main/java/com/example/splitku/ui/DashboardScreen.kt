@@ -1,5 +1,6 @@
 package com.example.splitku.ui
 
+import android.R.attr.title
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,6 +16,8 @@ import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,16 +26,34 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.splitku.data.local.entity.GroupEntity
+import com.example.splitku.viewmodel.DashboardViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen(onLogoutClick: () -> Unit) {
+fun DashboardScreen(
+    viewModel: DashboardViewModel,
+    onLogoutClick: () -> Unit
+) {
+    val groups by viewModel.groups.collectAsState()
+
     Scaffold(
         containerColor = Color(0xFFF9FAFB), // Warna background abu-abu sangat muda
         bottomBar = { DashboardBottomNavigation() },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* TODO: Tambah Grup/Bon Baru */ },
+                onClick = {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        viewModel.addGroup(
+                            GroupEntity(
+                                groupName = "Group baru"
+                            )
+                        )
+                    }
+                },
                 containerColor = Color(0xFFE5E7EB),
                 contentColor = Color.Black,
                 shape = RoundedCornerShape(16.dp)
@@ -83,13 +104,15 @@ fun DashboardScreen(onLogoutClick: () -> Unit) {
             }
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 5. List Grup Aktif (Mock Data)
-            GroupItemCard(title = "Kost Ceria", members = 4, total = "Rp 1.200.000", colorPlaceholder = Color(0xFF8B5A2B))
-            Spacer(modifier = Modifier.height(12.dp))
-            GroupItemCard(title = "Proyek Makul", members = 3, total = "Rp 350.000", colorPlaceholder = Color(0xFF5F9EA0))
-            Spacer(modifier = Modifier.height(12.dp))
-            GroupItemCard(title = "Liburan Bali", members = 6, total = "Rp 5.400.000", colorPlaceholder = Color(0xFF4682B4))
-            Spacer(modifier = Modifier.height(24.dp))
+            groups.forEach { group ->
+                GroupItemCard(
+                    title = group.groupName,
+                    members = 0,
+                    total = "Rp 0",
+                    colorPlaceholder = Color(0xFF8B5A2B)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
 
             // Tombol logout sementara (bisa Anda pindahkan ke halaman Account nantinya)
             OutlinedButton(
