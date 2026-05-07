@@ -28,8 +28,13 @@ import com.example.splitku.data.local.AppDatabase
 import com.example.splitku.viewmodel.DashboardViewModel
 import com.example.splitku.viewmodel.DashboardViewModelFactory
 import com.example.splitku.ui.CreateGroupScreen
+import com.example.splitku.ui.InviteQrScreen
 import com.example.splitku.ui.JoinGroupScreen
 class MainActivity : ComponentActivity() {
+    // fix: inisialisasi database di level Activity, bukan di dalam setContent
+    // supaya tidak re-create setiap recompose
+    private val database by lazy { AppDatabase.getDatabase(this) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -41,11 +46,11 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val context = LocalContext.current
 
-                    val application = context.applicationContext as Application
+//                    val application = context.applicationContext as Application
                     val authViewModel: AuthViewModel = viewModel(
                         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
                     )
-                    val database = AppDatabase.getDatabase(context)
+//                    val database = AppDatabase.getDatabase(context)
                     val dashboardViewModel: DashboardViewModel = viewModel(
                         factory = DashboardViewModelFactory(
                             database.groupDao()
@@ -53,83 +58,86 @@ class MainActivity : ComponentActivity() {
 
                     val loginState by authViewModel.loginState.collectAsState()
 
-                    var currentScreen by remember {
-                        mutableStateOf(
-                            if (authViewModel.loginState.value is LoginState.Success) "dashboard" else "login"
-                        )
-                    }
+                    // untuk kode qr
+                    var currentScreen by remember { mutableStateOf("login") }
+                    var inviteCode by remember { mutableStateOf<String?>(null) }
 
-                    // INI PERBAIKANNYA: Menggunakan LaunchedEffect agar tidak terjadi "pemaksaan" state
+                    // Reaksi terhadap perubahan login state
                     LaunchedEffect(loginState) {
-                        when (val state = loginState) {
+                        when (loginState) {
                             is LoginState.Success -> {
-                                currentScreen = "dashboard"
+                                currentScreen = Screen.DASHBOARD
+                            }
+
+                            is LoginState.Error -> {
+                                Toast.makeText(
+                                    context,
+                                    (loginState as LoginState.Error).message,
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
                             is LoginState.Idle -> {
-                                // Hanya pindah ke login otomatis JIKA posisinya sedang di dashboard (sedang logout)
-                                if (currentScreen == "dashboard") {
-                                    currentScreen = "login"
-                                }
+                                currentScreen = Screen.LOGIN
                             }
-                            is LoginState.Error -> {
-                                Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
-                            }
-                            else -> { /* Loading */ }
+
+                            else -> {}
                         }
                     }
+                    // ---- Navigasi ----
+                    when (currentScreen) {
 
-                    // Logika Navigasi Antar Layar
-                    if (currentScreen == "login") {
-                        LoginScreen(
-                            onLoginClick = { email, password -> authViewModel.login(email, password) },
-                            onGoogleLoginClick = { Toast.makeText(context, "Google Login diklik", Toast.LENGTH_SHORT).show() },
-                            onRegisterClick = { currentScreen = "register" }, // Sekarang ini pasti berhasil merubah layar!
-                            onForgotPasswordClick = { currentScreen = "forgot_password" }
+                        Screen.LOGIN -> LoginScreen(
+                            onLoginClick = { email, password ->
+                                authViewModel.login(email, password)
+                            },
+                            onGoogleLoginClick = {
+                                Toast.makeText(context, "Google Login diklik", Toast.LENGTH_SHORT).show()
+                            },
+                            onRegisterClick = { currentScreen = Screen.REGISTER },
+                            onForgotPasswordClick = { currentScreen = Screen.FORGOT }
                         )
-                    } else if (currentScreen == "forgot_password") {
-                        ForgotPasswordScreen(
+
+                        Screen.FORGOT -> ForgotPasswordScreen(
                             onSendResetClick = { email ->
                                 authViewModel.resetPassword(email)
-                                Toast.makeText(context, "Cek email Anda untuk reset password", Toast.LENGTH_LONG).show()
-                                currentScreen = "login" // Balik ke login setelah kirim
+                                Toast.makeText(context, "Cek email untuk reset password", Toast.LENGTH_LONG).show()
+                                currentScreen = Screen.LOGIN
                             },
-                            onBackToLoginClick = { currentScreen = "login" }
+                            onBackToLoginClick = { currentScreen = Screen.LOGIN }
                         )
-                    } else if (currentScreen == "register") {
-                        RegisterScreen(
-                            onRegisterClick = { name, email, password -> authViewModel.register(name, email, password) },
-                            onLoginClick = { currentScreen = "login" }
-                        )
-                    } else if (currentScreen == "dashboard") {
-                        DashboardScreen(
-                            viewModel = dashboardViewModel,
-                            onLogoutClick = {
-                                authViewModel.logout()
-                            }
-                            ,
-                            onAddGroupClick = {
-                                currentScreen = "create_group"
-                            }
-                            ,
 
-                            onJoinGroupClick = {
-                                currentScreen = "join_group"
-                            }
+                        Screen.REGISTER -> RegisterScreen(
+                            onRegisterClick = { name, email, password ->
+                                authViewModel.register(name, email, password)
+                            },
+                            onLoginClick = { currentScreen = Screen.LOGIN }
                         )
-                    }
-                    else if (currentScreen == "create_group") {
-                        CreateGroupScreen(
+
+                        Screen.DASHBOARD -> DashboardScreen(
                             viewModel = dashboardViewModel,
-                            onBackClick = {
-                                currentScreen = "dashboard"
+                            onLogoutClick = { authViewModel.logout() },
+                            onAddGroupClick = { currentScreen = Screen.CREATE_GROUP },
+                            onJoinGroupClick = { currentScreen = Screen.JOIN_GROUP },
+                            onNavigate = { screen -> currentScreen = screen },
+                            currentScreen = currentScreen
+                        )
+
+                        Screen.CREATE_GROUP -> CreateGroupScreen(
+                            viewModel = dashboardViewModel,
+                            onBackClick = { currentScreen = Screen.DASHBOARD },
+                            onGroupCreated = { code ->
+                                inviteCode = code
+                                currentScreen = Screen.INVITE_QR
                             }
                         )
-                    }
-                    else if (currentScreen == "join_group") {
-                        JoinGroupScreen(
-                            onBackClick = {
-                                currentScreen = "dashboard"
-                            }
+
+                        Screen.INVITE_QR -> InviteQrScreen(
+                            inviteCode = inviteCode ?: "",
+                            onBackClick = { currentScreen = Screen.DASHBOARD } // fix: user bisa balik
+                        )
+
+                        Screen.JOIN_GROUP -> JoinGroupScreen(
+                            onBackClick = { currentScreen = Screen.DASHBOARD }
                         )
                     }
                 }

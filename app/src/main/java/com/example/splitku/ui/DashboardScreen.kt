@@ -26,7 +26,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.splitku.Screen
 import com.example.splitku.data.local.entity.GroupEntity
+import com.example.splitku.ui.components.BottomNavBar
 import com.example.splitku.viewmodel.DashboardViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,13 +40,21 @@ fun DashboardScreen(
     viewModel: DashboardViewModel,
     onLogoutClick: () -> Unit,
     onJoinGroupClick: () -> Unit,
-    onAddGroupClick: () -> Unit
+    onAddGroupClick: () -> Unit,
+    currentScreen: String,
+    onNavigate: (String) -> Unit
+
 ) {
     val groups by viewModel.groups.collectAsState()
 
     Scaffold(
         containerColor = Color(0xFFF9FAFB), // Warna background abu-abu sangat muda
-        bottomBar = { DashboardBottomNavigation() },
+        bottomBar = {
+            BottomNavBar(
+                currentScreen = currentScreen,
+                onNavigate = onNavigate
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -343,43 +353,5 @@ fun GroupItemCard(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun DashboardBottomNavigation() {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 8.dp
-    ) {
-        NavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = { Icon(Icons.Outlined.Home, contentDescription = "Dashboard") },
-            label = { Text("Dashboard") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF1C64F2),
-                selectedTextColor = Color(0xFF1C64F2),
-                indicatorColor = Color(0xFFEFF6FF)
-            )
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Default.Person, contentDescription = "Groups") },
-            label = { Text("Groups") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Outlined.DateRange, contentDescription = "Activity") },
-            label = { Text("Activity") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Outlined.AccountCircle, contentDescription = "Account") },
-            label = { Text("Account") }
-        )
     }
 }
