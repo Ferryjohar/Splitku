@@ -1,5 +1,9 @@
 package com.example.splitku.ui
 
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -12,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JoinGroupScreen(
@@ -21,6 +24,29 @@ fun JoinGroupScreen(
     var inviteCode by remember {
         mutableStateOf("")
     }
+    val qrScannerLauncher = rememberLauncherForActivityResult(
+        contract = ScanContract()
+    ) { result ->
+
+        if (result.contents != null) {
+
+            inviteCode = result.contents
+        }
+    }
+    val cameraPermissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                val options = ScanOptions().apply {
+
+                    setPrompt("Scan QR Code Grup")
+                    setBeepEnabled(true)
+                    setOrientationLocked(false)
+                }
+                qrScannerLauncher.launch(options)
+            }
+        }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -75,6 +101,24 @@ fun JoinGroupScreen(
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp)
             )
+            Spacer(modifier = Modifier.height(20.dp))
+            OutlinedButton(
+                onClick = {
+
+                    cameraPermissionLauncher.launch(
+                        android.Manifest.permission.CAMERA
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp),
+                shape = RoundedCornerShape(14.dp)
+            ){
+                Text(
+                    text = "Scan Qr Code",
+                    color = Color(0xFF1C64F2)
+                )
+            }
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = {
