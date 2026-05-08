@@ -8,4 +8,6 @@ object Screen {
     const val JOIN_GROUP = "join_group"
     const val INVITE_QR = "invite_qr"
     const val FORGOT = "forgot_password"
+    const val ACCOUNT = "account"
+
 }
