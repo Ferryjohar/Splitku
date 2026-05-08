@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.splitku.data.local.dao.GroupDao
 import com.example.splitku.data.local.entity.GroupEntity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -17,6 +18,11 @@ class DashboardViewModel(
 
     init {
         loadGroups()
+    }
+    fun createGroup(groupEntity: GroupEntity) {
+        viewModelScope.launch(Dispatchers.IO) {
+            addGroup(groupEntity)
+        }
     }
     private fun loadGroups() {
         viewModelScope.launch {

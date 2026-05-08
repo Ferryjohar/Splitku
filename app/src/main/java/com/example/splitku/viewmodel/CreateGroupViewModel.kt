@@ -9,7 +9,6 @@ import kotlinx.coroutines.launch
 
 class CreateGroupViewModel(
     private val groupDao: GroupDao
-
 ): ViewModel(){
     fun createGroup(groupName: String, ownerId: String) {
         viewModelScope.launch {
@@ -17,7 +16,7 @@ class CreateGroupViewModel(
             val group = GroupEntity(
                 groupName = groupName,
                 ownerId = ownerId,
-                invateCode = inviteCode
+                inviteCode = inviteCode
             )
             groupDao.insertGroup(group)
         }
