@@ -173,7 +173,7 @@ class MainActivity : ComponentActivity() {
                         val userId by profileViewModel.userId.collectAsState()
 
                         ProfileScreen(
-                            name = name,
+
                             email = email,
                             password = password,
                             userId = userId,

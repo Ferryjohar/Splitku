@@ -20,7 +20,7 @@ import com.example.splitku.ui.components.BottomNavBar
 
 @Composable
 fun ProfileScreen(
-    name: String,
+
     email: String,
     password: String,
     userId: String,
@@ -106,12 +106,7 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(18.dp))
 
-                    Text(
-                        text = if (name.isEmpty()) "Guest User" else name,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF111827)
-                    )
+
 
                     Spacer(modifier = Modifier.height(6.dp))
 
@@ -174,14 +169,6 @@ fun ProfileScreen(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = "SplitKu v1.4.2",
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
         }
     }
 }
