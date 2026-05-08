@@ -28,13 +28,10 @@ import com.example.splitku.data.local.AppDatabase
 import com.example.splitku.viewmodel.DashboardViewModel
 import com.example.splitku.viewmodel.DashboardViewModelFactory
 import com.example.splitku.ui.CreateGroupScreen
-import com.example.splitku.ui.InviteQrScreen
 import com.example.splitku.ui.JoinGroupScreen
+import com.example.splitku.viewmodel.ProfileViewModel
+import com.example.splitku.ui.ProfileScreen
 class MainActivity : ComponentActivity() {
-    // fix: inisialisasi database di level Activity, bukan di dalam setContent
-    // supaya tidak re-create setiap recompose
-    private val database by lazy { AppDatabase.getDatabase(this) }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -46,100 +43,150 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val context = LocalContext.current
 
-//                    val application = context.applicationContext as Application
+                    val application = context.applicationContext as Application
                     val authViewModel: AuthViewModel = viewModel(
                         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
                     )
-//                    val database = AppDatabase.getDatabase(context)
+                    val database = AppDatabase.getDatabase(context)
                     val dashboardViewModel: DashboardViewModel = viewModel(
                         factory = DashboardViewModelFactory(
                             database.groupDao()
                         ))
+                    //profile data bisa di simpan
+                    val profileViewModel: ProfileViewModel = viewModel()
 
                     val loginState by authViewModel.loginState.collectAsState()
 
-                    // untuk kode qr
-                    var currentScreen by remember { mutableStateOf("login") }
-                    var inviteCode by remember { mutableStateOf<String?>(null) }
+                    var savedName by remember {
+                        mutableStateOf("")
+                    }
 
-                    // Reaksi terhadap perubahan login state
+                    var currentScreen by remember {
+                        mutableStateOf(
+                            if (authViewModel.loginState.value is LoginState.Success) "dashboard" else "login"
+                        )
+                    }
+
+                    // INI PERBAIKANNYA: Menggunakan LaunchedEffect agar tidak terjadi "pemaksaan" state
                     LaunchedEffect(loginState) {
-                        when (loginState) {
+                        when (val state = loginState) {
                             is LoginState.Success -> {
-                                currentScreen = Screen.DASHBOARD
-                            }
-
-                            is LoginState.Error -> {
-                                Toast.makeText(
-                                    context,
-                                    (loginState as LoginState.Error).message,
-                                    Toast.LENGTH_LONG
-                                ).show()
+                                currentScreen = "dashboard"
                             }
                             is LoginState.Idle -> {
-                                currentScreen = Screen.LOGIN
+                                // Hanya pindah ke login otomatis JIKA posisinya sedang di dashboard (sedang logout)
+                                if (currentScreen == "dashboard") {
+                                    currentScreen = "login"
+                                }
                             }
-
-                            else -> {}
+                            is LoginState.Error -> {
+                                Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                            }
+                            else -> { /* Loading */ }
                         }
                     }
-                    // ---- Navigasi ----
-                    when (currentScreen) {
 
-                        Screen.LOGIN -> LoginScreen(
+                    // Logika Navigasi Antar Layar
+                    if (currentScreen == "login") {
+                        LoginScreen(
                             onLoginClick = { email, password ->
-                                authViewModel.login(email, password)
-                            },
-                            onGoogleLoginClick = {
-                                Toast.makeText(context, "Google Login diklik", Toast.LENGTH_SHORT).show()
-                            },
-                            onRegisterClick = { currentScreen = Screen.REGISTER },
-                            onForgotPasswordClick = { currentScreen = Screen.FORGOT }
-                        )
 
-                        Screen.FORGOT -> ForgotPasswordScreen(
+                                authViewModel.login(email, password)
+
+                                profileViewModel.setProfileData(
+
+                                    email = email,
+                                    password = password
+                                )
+                            },
+                            onGoogleLoginClick = { Toast.makeText(context, "Google Login diklik", Toast.LENGTH_SHORT).show() },
+                            onRegisterClick = { currentScreen = "register" }, // Sekarang ini pasti berhasil merubah layar!
+                            onForgotPasswordClick = { currentScreen = "forgot_password" }
+                        )
+                    } else if (currentScreen == "forgot_password") {
+                        ForgotPasswordScreen(
                             onSendResetClick = { email ->
                                 authViewModel.resetPassword(email)
-                                Toast.makeText(context, "Cek email untuk reset password", Toast.LENGTH_LONG).show()
-                                currentScreen = Screen.LOGIN
+                                Toast.makeText(context, "Cek email Anda untuk reset password", Toast.LENGTH_LONG).show()
+                                currentScreen = "login" // Balik ke login setelah kirim
                             },
-                            onBackToLoginClick = { currentScreen = Screen.LOGIN }
+                            onBackToLoginClick = { currentScreen = "login" }
                         )
-
-                        Screen.REGISTER -> RegisterScreen(
+                    } else if (currentScreen == "register") {
+                        RegisterScreen(
                             onRegisterClick = { name, email, password ->
+                                savedName = name
+
                                 authViewModel.register(name, email, password)
+
+                                profileViewModel.setProfileData(
+                                    name = name,
+                                    email = email,
+                                    password = password
+                                )
                             },
-                            onLoginClick = { currentScreen = Screen.LOGIN }
+                            onLoginClick = { currentScreen = "login" }
                         )
-
-                        Screen.DASHBOARD -> DashboardScreen(
+                    } else if (currentScreen == "dashboard") {
+                        DashboardScreen(
                             viewModel = dashboardViewModel,
-                            onLogoutClick = { authViewModel.logout() },
-                            onAddGroupClick = { currentScreen = Screen.CREATE_GROUP },
-                            onJoinGroupClick = { currentScreen = Screen.JOIN_GROUP },
-                            onNavigate = { screen -> currentScreen = screen },
-                            currentScreen = currentScreen
-                        )
-
-                        Screen.CREATE_GROUP -> CreateGroupScreen(
-                            viewModel = dashboardViewModel,
-                            onBackClick = { currentScreen = Screen.DASHBOARD },
-                            onGroupCreated = { code ->
-                                inviteCode = code
-                                currentScreen = Screen.INVITE_QR
+                            onLogoutClick = {
+                                authViewModel.logout()
+                            }
+                            ,
+                            onAddGroupClick = {
+                                currentScreen = "create_group"
+                            }
+                            ,
+                            onJoinGroupClick = {
+                                currentScreen = Screen.JOIN_GROUP
+                            },
+                            currentScreen = currentScreen,
+                            onNavigate = { screen ->
+                                currentScreen = screen
                             }
                         )
+                    }
 
-                        Screen.INVITE_QR -> InviteQrScreen(
-                            inviteCode = inviteCode ?: "",
-                            onBackClick = { currentScreen = Screen.DASHBOARD } // fix: user bisa balik
-                        )
-
-                        Screen.JOIN_GROUP -> JoinGroupScreen(
-                            onBackClick = { currentScreen = Screen.DASHBOARD }
+                    else if (currentScreen == "create_group") {
+                        CreateGroupScreen(
+                            viewModel = dashboardViewModel,
+                            onBackClick = {
+                                currentScreen = "dashboard"
+                            }
                         )
                     }
+                    else if (currentScreen == "join_group") {
+                        JoinGroupScreen(
+                            onBackClick = {
+                                currentScreen = "dashboard"
+                            }
+                        )
+                    }
+
+                    //TAMBAH
+                    else if (currentScreen == Screen.ACCOUNT) {
+
+                        val name by profileViewModel.name.collectAsState()
+                        val email by profileViewModel.email.collectAsState()
+                        val password by profileViewModel.password.collectAsState()
+                        val userId by profileViewModel.userId.collectAsState()
+
+                        ProfileScreen(
+                            name = name,
+                            email = email,
+                            password = password,
+                            userId = userId,
+                            onLogoutClick = {
+                                authViewModel.logout()
+                            },
+                            currentScreen = currentScreen,
+                            onNavigate = { screen ->
+                                currentScreen = screen
+                            }
+                        )
+                    }
+
                 }
             }
         }
