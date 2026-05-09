@@ -1,5 +1,14 @@
 package com.example.splitku.ui
 
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,7 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.splitku.data.local.entity.GroupEntity
+import com.example.splitku.viewmodel.CreateGroupViewModel
 import com.example.splitku.viewmodel.DashboardViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,6 +80,42 @@ fun CreateGroupScreen(
     var members by remember {
         mutableStateOf(listOf("Aria Putra (Anda)"))
     }
+    val context = LocalContext.current
+
+    val qrScannerLauncher = rememberLauncherForActivityResult(
+        contract = ScanContract()
+    ) { result ->
+
+        if (result.contents != null) {
+
+            memberName = result.contents
+        }
+    }
+
+    val cameraPermissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+
+            if (isGranted) {
+
+                val options = ScanOptions().apply {
+                    setPrompt("Scan QR Anggota")
+                    setBeepEnabled(true)
+                    setOrientationLocked(false)
+                }
+
+                qrScannerLauncher.launch(options)
+
+            } else {
+
+                Toast.makeText(
+                    context,
+                    "Izin kamera ditolak",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
 
     Scaffold(
         containerColor = Color.White,
@@ -233,8 +278,10 @@ fun CreateGroupScreen(
                         },
 
                         placeholder = {
-                            Text("e.g. Kost Ceria, Liburan Bali",
-                                color = Color.Gray)
+                            Text(
+                                "e.g. Kost Ceria, Liburan Bali",
+                                color = Color.Gray
+                            )
                         },
 
                         modifier = Modifier.fillMaxWidth(),
@@ -266,9 +313,10 @@ fun CreateGroupScreen(
                             },
 
                             placeholder = {
-                                Text("ID Anggota",
+                                Text(
+                                    "ID Anggota",
                                     color = Color.Gray
-                                    )
+                                )
                             },
 
                             modifier = Modifier.weight(1f),
@@ -311,11 +359,54 @@ fun CreateGroupScreen(
                             modifier = Modifier.weight(1f)
                         )
 
-                        Text(
-                            text = " Scan QR Code ",
-                            color = Color(0xFF1C64F2),
-                            fontSize = 12.sp
-                        )
+                        TextButton(
+                            onClick = {
+
+                                val hasCamera = context.packageManager
+                                    .hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+
+                                if (!hasCamera) {
+
+                                    Toast.makeText(
+                                        context,
+                                        "Device tidak memiliki kamera",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+
+                                    return@TextButton
+                                }
+
+                                val permissionGranted =
+                                    ContextCompat.checkSelfPermission(
+                                        context,
+                                        android.Manifest.permission.CAMERA
+                                    ) == PackageManager.PERMISSION_GRANTED
+
+                                if (permissionGranted) {
+
+                                    val options = ScanOptions().apply {
+                                        setPrompt("Scan QR Anggota")
+                                        setBeepEnabled(true)
+                                        setOrientationLocked(false)
+                                    }
+
+                                    qrScannerLauncher.launch(options)
+
+                                } else {
+
+                                    cameraPermissionLauncher.launch(
+                                        android.Manifest.permission.CAMERA
+                                    )
+                                }
+                            }
+                        ) {
+
+                            Text(
+                                text = "Scan QR Code",
+                                color = Color(0xFF1C64F2),
+                                fontSize = 12.sp
+                            )
+                        }
 
                         Divider(
                             modifier = Modifier.weight(1f)
@@ -402,13 +493,10 @@ fun CreateGroupScreen(
                         onClick = {
                             if (groupName.isNotEmpty()) {
                                 val generatedCode = "INV-${System.currentTimeMillis()}"
-                                    viewModel.createGroup(
-                                        GroupEntity(
-                                            groupName = groupName,
-                                            ownerId = "USER001",
-                                            inviteCode = generatedCode
-                                        )
-                                    )
+                                viewModel.createGroup(
+                                    groupName = groupName,
+                                    ownerId = "USER001"
+                                )
                                 onGroupCreated(generatedCode)
                             }
                         },

@@ -6,6 +6,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
 <!--    untuk izin kamera    -->
     <uses-permission android:name="android.permission.CAMERA"/>
+<!--    deklarasi fitur kamera-->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <application
         android:allowBackup="true"
