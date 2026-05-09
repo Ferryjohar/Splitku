@@ -1,5 +1,8 @@
 package com.example.splitku.ui
 
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
+import android.widget.Toast
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -13,9 +16,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JoinGroupScreen(
@@ -33,6 +38,7 @@ fun JoinGroupScreen(
             inviteCode = result.contents
         }
     }
+    val context = LocalContext.current
     val cameraPermissionLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestPermission()
@@ -45,6 +51,12 @@ fun JoinGroupScreen(
                     setOrientationLocked(false)
                 }
                 qrScannerLauncher.launch(options)
+            } else {
+                Toast.makeText(
+                    context,
+                    "Izin kamera ditolak. Gunakan kode manual.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     Scaffold(
@@ -104,16 +116,45 @@ fun JoinGroupScreen(
             Spacer(modifier = Modifier.height(20.dp))
             OutlinedButton(
                 onClick = {
+                    val hasCamera = context.packageManager
+                        .hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+                    if (!hasCamera) {
 
-                    cameraPermissionLauncher.launch(
-                        android.Manifest.permission.CAMERA
-                    )
+                        Toast.makeText(
+                            context,
+                            "Device tidak memiliki kamera. Gunakan kode manual.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        return@OutlinedButton
+                    }
+                    val permissionGranted =
+                        ContextCompat.checkSelfPermission(
+                            context,
+                            android.Manifest.permission.CAMERA
+                        ) == PackageManager.PERMISSION_GRANTED
+
+                    if (permissionGranted) {
+
+                        val options = ScanOptions().apply {
+                            setPrompt("Scan QR Code Grup")
+                            setBeepEnabled(true)
+                            setOrientationLocked(false)
+                        }
+
+                        qrScannerLauncher.launch(options)
+
+                    } else {
+                        cameraPermissionLauncher.launch(
+                            android.Manifest.permission.CAMERA
+                        )
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
                 shape = RoundedCornerShape(14.dp)
-            ){
+            ) {
                 Text(
                     text = "Scan Qr Code",
                     color = Color(0xFF1C64F2)
