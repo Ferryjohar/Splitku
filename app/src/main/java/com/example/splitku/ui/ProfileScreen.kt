@@ -17,6 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.splitku.ui.components.BottomNavBar
+import androidx.compose.material.icons.filled.QrCode
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun ProfileScreen(
@@ -30,6 +33,7 @@ fun ProfileScreen(
 ) {
 
     val bluePrimary = Color(0xFF2563EB)
+    val context = LocalContext.current
 
     Scaffold(
 
@@ -137,7 +141,15 @@ fun ProfileScreen(
 
                     ProfileItem(
                         title = "User ID",
-                        value = userId
+                        value = userId,
+                        showQr = true,
+                        onQrClick = {
+                            Toast.makeText(
+                                context,
+                                "QR Clicked!",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     )
 
                     Spacer(modifier = Modifier.height(30.dp))
@@ -180,7 +192,9 @@ fun ProfileScreen(
 @Composable
 fun ProfileItem(
     title: String,
-    value: String
+    value: String,
+    showQr: Boolean = false,
+    onQrClick: () -> Unit = {}
 ) {
 
     Card(
@@ -193,24 +207,47 @@ fun ProfileItem(
         )
     ) {
 
-        Column(
-            modifier = Modifier.padding(16.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
 
-            Text(
-                text = title,
-                color = Color.Gray,
-                fontSize = 12.sp
-            )
+            Column {
 
-            Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = title,
+                    color = Color.Gray,
+                    fontSize = 12.sp
+                )
 
-            Text(
-                text = value,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp,
-                color = Color(0xFF111827)
-            )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = value,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    color = Color(0xFF111827)
+                )
+            }
+
+            // ICON QR
+            if (showQr) {
+
+                IconButton(
+                    onClick = onQrClick
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Default.QrCode,
+                        contentDescription = "QR",
+                        tint = Color(0xFF2563EB)
+                    )
+                }
+            }
         }
     }
 }
