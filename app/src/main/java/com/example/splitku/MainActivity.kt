@@ -57,7 +57,26 @@ class MainActivity : ComponentActivity() {
                     //profile data bisa di simpan
                     val profileViewModel: ProfileViewModel = viewModel()
 
+                    //tambahan dari room database agar profilviewmodel diisi otomatis dari room
                     val loginState by authViewModel.loginState.collectAsState()
+
+                    LaunchedEffect(loginState) {
+
+                        if (loginState is LoginState.Success) {
+
+                            val currentUser = authViewModel.getCurrentUser()
+
+                            if (currentUser != null) {
+
+                                profileViewModel.setProfileData(
+                                    name = currentUser.name,
+                                    email = currentUser.email,
+                                    password = "",
+                                    userId = currentUser.userId
+                                )
+                            }
+                        }
+                    }
 
                     // invite dengan kode
                     var inviteCode by remember {
@@ -103,14 +122,9 @@ class MainActivity : ComponentActivity() {
                         Screen.LOGIN -> {
                             LoginScreen(
                                 onLoginClick = { email, password ->
-
                                     authViewModel.login(email, password)
-
-                                    profileViewModel.setProfileData(
-                                        email = email,
-                                        password = password
-                                    )
                                 },
+
                                 onGoogleLoginClick = {
                                     Toast.makeText(
                                         context,
@@ -149,18 +163,13 @@ class MainActivity : ComponentActivity() {
                         Screen.REGISTER -> {
                             RegisterScreen(
                                 onRegisterClick = { name, email, password ->
-
                                     authViewModel.register(name, email, password)
-
-                                    profileViewModel.setProfileData(
-                                        name = name,
-                                        email = email,
-                                        password = password
-                                    )
                                 },
+
                                 onLoginClick = {
                                     currentScreen = Screen.LOGIN
                                 }
+
                             )
                         }
 
