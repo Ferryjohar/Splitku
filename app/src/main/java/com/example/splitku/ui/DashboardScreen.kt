@@ -33,11 +33,13 @@ import com.example.splitku.viewmodel.DashboardViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.example.splitku.viewmodel.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
+    profileViewModel: ProfileViewModel,
     onLogoutClick: () -> Unit,
     onJoinGroupClick: () -> Unit,
     onAddGroupClick: () -> Unit,
@@ -46,6 +48,7 @@ fun DashboardScreen(
 
 ) {
     val groups by viewModel.groups.collectAsState()
+    val name by profileViewModel.name.collectAsState() //ambil nama user
 
     Scaffold(
         containerColor = Color(0xFFF9FAFB), // Warna background abu-abu sangat muda
@@ -76,7 +79,10 @@ fun DashboardScreen(
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
             // 1. Top Bar Custom
-            TopSection()
+            TopSection(
+                userName = name
+
+            )
             Spacer(modifier = Modifier.height(24.dp))
 
             // 2. Card Total Saldo
@@ -143,7 +149,9 @@ fun DashboardScreen(
 }
 
 @Composable
-fun TopSection() {
+fun TopSection(
+    userName: String
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -160,7 +168,7 @@ fun TopSection() {
         }
         Spacer(modifier = Modifier.width(12.dp))
         Text(
-            text = "Grup Saya",
+            text = "Halo! ${userName.split(" ").firstOrNull() ?: ""}",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF374151)

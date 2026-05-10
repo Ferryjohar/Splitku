@@ -176,6 +176,7 @@ class MainActivity : ComponentActivity() {
                         Screen.DASHBOARD -> {
                             DashboardScreen(
                                 viewModel = dashboardViewModel,
+                                profileViewModel = profileViewModel,
 
                                 onLogoutClick = {
                                     authViewModel.logout()
