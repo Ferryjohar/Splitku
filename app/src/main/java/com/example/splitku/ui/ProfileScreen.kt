@@ -126,7 +126,11 @@ fun ProfileScreen(
 
                     ProfileItem(
                         title = "Password",
-                        value = if (password.isEmpty()) "••••••••" else password
+                        value = if (password.isEmpty()) {
+                            "••••••••"
+                        } else {
+                            "•".repeat(password.length)
+                        }
                     )
 
                     Spacer(modifier = Modifier.height(14.dp))
