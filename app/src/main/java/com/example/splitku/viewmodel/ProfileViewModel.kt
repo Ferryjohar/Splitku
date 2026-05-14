@@ -19,15 +19,16 @@ class ProfileViewModel : ViewModel() {
     private val _password = MutableStateFlow("")
     val password: StateFlow<String> = _password
 
-    // USER ID DUMMY
-    private val _userId = MutableStateFlow("ID-ARI-2024")
+    // USER ID ASLI
+    private val _userId = MutableStateFlow("")
     val userId: StateFlow<String> = _userId
 
     // SET DATA PROFILE
     fun setProfileData(
         name: String? = null,
         email: String,
-        password: String
+        password: String,
+        userId: String
     ) {
 
         if (name != null) {
@@ -36,5 +37,6 @@ class ProfileViewModel : ViewModel() {
 
         _email.value = email
         _password.value = password
+        _userId.value = userId
     }
 }

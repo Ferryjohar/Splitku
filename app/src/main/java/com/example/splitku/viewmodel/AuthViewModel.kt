@@ -64,27 +64,63 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val userId = auth.currentUser?.uid
-                    val userProfile = hashMapOf(
-                        "uid" to userId,
-                        "name" to name,
-                        "email" to email,
-                        "createdAt" to System.currentTimeMillis()
-                    )
-
                     if (userId != null) {
-                        db.collection("users").document(userId)
-                            .set(userProfile)
-                            .addOnSuccessListener {
-                                // SIMPAN KE ROOM (Offline-First)
-                                viewModelScope.launch {
-                                    userDao.insertUser(UserEntity(userId, name, email, System.currentTimeMillis()))
-                                    _loginState.value = LoginState.Success
-                                }
+
+                        db.collection("users")
+                            .get()
+
+                            .addOnSuccessListener { documents ->
+
+                                val totalUsers = documents.size()
+
+                                val customUserId =
+                                    "USR-" + String.format("%04d", totalUsers + 1)
+
+                                val userProfile = hashMapOf(
+
+                                    "uid" to userId,
+                                    "userId" to customUserId,
+                                    "name" to name,
+                                    "email" to email,
+                                    "createdAt" to System.currentTimeMillis()
+                                )
+
+                                db.collection("users")
+                                    .document(userId)
+                                    .set(userProfile)
+
+                                    .addOnSuccessListener {
+
+                                        viewModelScope.launch {
+
+                                            userDao.insertUser(
+
+                                                UserEntity(
+                                                    uid = userId,
+                                                    userId = customUserId,
+                                                    name = name,
+                                                    email = email,
+                                                    createdAt = System.currentTimeMillis()
+                                                )
+                                            )
+
+                                            _loginState.value =
+                                                LoginState.Success
+                                        }
+                                    }
+
+                                    .addOnFailureListener { e ->
+
+                                        _loginState.value =
+                                            LoginState.Error(
+                                                "Gagal simpan profil: ${e.message}"
+                                            )
+                                    }
                             }
-                            .addOnFailureListener { e ->
-                                _loginState.value = LoginState.Error("Gagal simpan profil: ${e.message}")
-                            }
+
+
                     }
+
                 } else {
                     _loginState.value = LoginState.Error(task.exception?.message ?: "Gagal mendaftar")
                 }
@@ -97,17 +133,48 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 if (document != null) {
                     val name = document.getString("name") ?: ""
                     val email = document.getString("email") ?: ""
+
+                    val customUserId =
+                        document.getString("userId") ?: ""
+
                     val createdAt = document.getLong("createdAt") ?: 0L
 
                     viewModelScope.launch {
-                        userDao.insertUser(UserEntity(userId, name, email, createdAt))
+                        userDao.insertUser(
+
+                            UserEntity(
+                                uid = userId,
+                                userId = customUserId,
+                                name = name,
+                                email = email,
+                                createdAt = createdAt
+                            )
+                        )
                         _loginState.value = LoginState.Success
                     }
                 }
             }
     }
+
+    suspend fun getCurrentUser(): UserEntity? {
+
+        val firebaseUser = auth.currentUser
+
+        return if (firebaseUser != null) {
+            userDao.getCurrentUser(firebaseUser.uid)
+        } else {
+            null
+        }
+    }
+
     fun logout() {
         auth.signOut() // Memutuskan sesi Firebase
+
+        viewModelScope.launch {
+            userDao.clearAllUsers()
+        }
+
+
         _loginState.value = LoginState.Idle // Mengembalikan status ke Idle (kembali ke layar login)
     }
 

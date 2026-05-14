@@ -19,9 +19,22 @@ class DashboardViewModel(
     init {
         loadGroups()
     }
-    fun createGroup(groupEntity: GroupEntity) {
+    fun createGroup(
+        groupName: String,
+        ownerId: String
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
-            addGroup(groupEntity)
+
+            val inviteCode =
+                "INV-${System.currentTimeMillis()}"
+
+            val group = GroupEntity(
+                groupName = groupName,
+                ownerId = ownerId,
+                inviteCode = inviteCode
+            )
+
+            groupDao.insertGroup(group)
         }
     }
     private fun loadGroups() {
