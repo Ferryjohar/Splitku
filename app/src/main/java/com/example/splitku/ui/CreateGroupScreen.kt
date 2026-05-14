@@ -58,20 +58,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.splitku.Screen
+import com.example.splitku.ui.components.BottomNavBar
 import com.example.splitku.viewmodel.CreateGroupViewModel
 import com.example.splitku.viewmodel.DashboardViewModel
+import androidx.compose.runtime.collectAsState
+import com.example.splitku.viewmodel.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateGroupScreen(
     viewModel: DashboardViewModel,
+    profileViewModel: ProfileViewModel,
     onBackClick: () -> Unit,
     onGroupCreated: (String) -> Unit
 ) {
+    val userId by profileViewModel.userId.collectAsState()
 
-    var groupName by remember {
-        mutableStateOf("")
-    }
+    var groupName by remember { mutableStateOf("") }
 
     var memberName by remember {
         mutableStateOf("")
@@ -151,54 +155,12 @@ fun CreateGroupScreen(
         },
 
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White
-            ) {
-
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = {
-                        Icon(Icons.Default.Home, null)
-                    },
-                    label = {
-                        Text("Dashboard")
-                    }
-                )
-
-                NavigationBarItem(
-                    selected = true,
-                    onClick = { },
-                    icon = {
-                        Icon(Icons.Default.Group, null)
-                    },
-                    label = {
-                        Text("Groups")
-                    }
-                )
-
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = {
-                        Icon(Icons.Default.DateRange, null)
-                    },
-                    label = {
-                        Text("Activity")
-                    }
-                )
-
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = {
-                        Icon(Icons.Default.Person, null)
-                    },
-                    label = {
-                        Text("Account")
-                    }
-                )
-            }
+            BottomNavBar(
+                currentScreen = Screen.CREATE_GROUP, // Sesuaikan dengan posisi layar saat ini
+                onNavigate = { screen ->
+                    // TODO: Nantinya arahkan ke fungsi navigasi jika ingin tombolnya berfungsi
+                }
+            )
         }
 
     ) { paddingValues ->
@@ -495,7 +457,7 @@ fun CreateGroupScreen(
                                 val generatedCode = "INV-${System.currentTimeMillis()}"
                                 viewModel.createGroup(
                                     groupName = groupName,
-                                    ownerId = "USER001"
+                                    ownerId = userId
                                 )
                                 onGroupCreated(generatedCode)
                             }

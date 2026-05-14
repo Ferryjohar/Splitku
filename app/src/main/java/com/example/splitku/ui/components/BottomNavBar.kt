@@ -10,6 +10,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.example.splitku.Screen
 
 @Composable
 fun BottomNavBar(
@@ -18,26 +19,26 @@ fun BottomNavBar(
 ){
     NavigationBar {
         NavigationBarItem(
-            selected = currentScreen == "dashboard",
-            onClick = { onNavigate("dashboard")},
+            selected = currentScreen == Screen.DASHBOARD,
+            onClick = { onNavigate(Screen.DASHBOARD) },
             icon = {Icon(Icons.Default.Home, null)},
             label = { Text("Dashboard") }
         )
         NavigationBarItem(
-            selected = currentScreen == "groups",
-            onClick = {onNavigate("groups")},
+            selected = currentScreen == Screen.GROUPS,
+            onClick = {onNavigate(Screen.GROUPS)},
             icon = {Icon(Icons.Default.Group, null)},
             label = {Text("Groups")}
         )
         NavigationBarItem(
-            selected = currentScreen == "activity",
-            onClick = {onNavigate("activity")},
+            selected = currentScreen == Screen.ACTIVITY,
+            onClick = {onNavigate(Screen.ACTIVITY)},
             icon = {Icon(Icons.Default.DateRange, null)},
             label = {Text("Activity")}
         )
         NavigationBarItem(
-            selected = currentScreen == "account",
-            onClick = {onNavigate("account")},
+            selected = currentScreen == Screen.ACCOUNT,
+            onClick = {onNavigate(Screen.ACCOUNT)},
             icon = {Icon(Icons.Default.Person, null)},
             label = {Text("Account")}
         )

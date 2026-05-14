@@ -201,7 +201,7 @@ class MainActivity : ComponentActivity() {
                         Screen.CREATE_GROUP -> {
                             CreateGroupScreen(
                                 viewModel = dashboardViewModel,
-
+                                profileViewModel = profileViewModel,
                                 onBackClick = {
                                     currentScreen = Screen.DASHBOARD
                                 },

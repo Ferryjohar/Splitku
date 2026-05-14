@@ -19,7 +19,7 @@ import com.example.splitku.data.local.entity.UserEntity
         ExpenseEntity::class,
         MembersEntity::class
     ],
-    version = 4
+    version = 5
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao

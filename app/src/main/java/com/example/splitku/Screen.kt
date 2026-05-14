@@ -9,5 +9,6 @@ object Screen {
     const val INVITE_QR = "invite_qr"
     const val FORGOT = "forgot_password"
     const val ACCOUNT = "account"
-
+    const val GROUPS = "groups"
+    const val ACTIVITY = "activity"
 }
