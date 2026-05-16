@@ -219,45 +219,6 @@ fun RegisterScreen(
             }
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Info Card Bawah (Buat Grup & Catat Bon)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Card Buat Grup
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFEFF6FF)), // Light Blue
-                    modifier = Modifier.weight(1f).border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(16.dp))
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(painterResource(id = android.R.drawable.ic_menu_add), contentDescription = null, tint = bluePrimary)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Buat Grup", color = bluePrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                    }
-                }
-
-                // Card Catat Bon
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF7ED)), // Light Orange
-                    modifier = Modifier.weight(1f).border(1.dp, Color(0xFFFFEDD5), RoundedCornerShape(16.dp))
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(painterResource(id = android.R.drawable.ic_menu_agenda), contentDescription = null, tint = Color(0xFF9A3412))
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Catat Bon", color = Color(0xFF9A3412), fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(32.dp))
-
             // Teks Navigasi ke Login
             Row {
                 Text("Sudah punya akun? ", color = Color.Gray, fontSize = 14.sp)

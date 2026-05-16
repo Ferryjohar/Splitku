@@ -37,7 +37,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.example.splitku.R
+import androidx.activity.compose.BackHandler
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -145,6 +145,23 @@ class MainActivity : ComponentActivity() {
 
                             else -> { /* Loading */
                             }
+                        }
+                    }
+
+                    // Mencegat tombol back bawaan HP
+                    BackHandler(
+                        // BackHandler hanya aktif jika kita BUKAN di layar Login atau Dashboard
+                        enabled = currentScreen != Screen.LOGIN && currentScreen != Screen.DASHBOARD
+                    ) {
+                        // Atur ke mana aplikasi harus kembali saat tombol back ditekan
+                        currentScreen = when (currentScreen) {
+                            Screen.FORGOT -> Screen.LOGIN
+                            Screen.REGISTER -> Screen.LOGIN
+                            Screen.CREATE_GROUP -> Screen.DASHBOARD
+                            Screen.JOIN_GROUP -> Screen.DASHBOARD
+                            Screen.INVITE_QR -> Screen.DASHBOARD
+                            Screen.ACCOUNT -> Screen.DASHBOARD
+                            else -> currentScreen
                         }
                     }
 
