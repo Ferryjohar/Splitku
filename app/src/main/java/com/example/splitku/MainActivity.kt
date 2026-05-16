@@ -31,6 +31,13 @@ import com.example.splitku.viewmodel.DashboardViewModel
 import com.example.splitku.viewmodel.DashboardViewModelFactory
 import com.example.splitku.viewmodel.LoginState
 import com.example.splitku.viewmodel.ProfileViewModel
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.example.splitku.R
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,20 +61,44 @@ class MainActivity : ComponentActivity() {
                         )
                     )
 
-                    //profile data bisa di simpan
+                    // Profile data bisa disimpan
                     val profileViewModel: ProfileViewModel = viewModel()
 
-                    //tambahan dari room database agar profilviewmodel diisi otomatis dari room
+                    // 1. Konfigurasi Google Sign In (Sudah dipindahkan ke dalam scope yang benar)
+                    val gso = remember {
+                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                            .requestIdToken(context.getString(R.string.default_web_client_id))
+                            .requestEmail()
+                            .build()
+                    }
+
+                    val googleSignInClient = remember { GoogleSignIn.getClient(context, gso) }
+
+                    // 2. Launcher untuk menangkap hasil pop-up Google
+                    val googleSignInLauncher = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.StartActivityForResult()
+                    ) { result ->
+                        if (result.resultCode == Activity.RESULT_OK) {
+                            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                            try {
+                                val account = task.getResult(ApiException::class.java)
+                                account.idToken?.let { token ->
+                                    // Jika berhasil dapat token, kirim ke ViewModel
+                                    authViewModel.firebaseAuthWithGoogle(token)
+                                }
+                            } catch (e: ApiException) {
+                                Toast.makeText(context, "Google Sign-In gagal: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+
+                    // Tambahan dari room database agar profilviewmodel diisi otomatis dari room
                     val loginState by authViewModel.loginState.collectAsState()
 
                     LaunchedEffect(loginState) {
-
                         if (loginState is LoginState.Success) {
-
                             val currentUser = authViewModel.getCurrentUser()
-
                             if (currentUser != null) {
-
                                 profileViewModel.setProfileData(
                                     name = currentUser.name,
                                     email = currentUser.email,
@@ -78,7 +109,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    // invite dengan kode
+                    // Invite dengan kode
                     var inviteCode by remember {
                         mutableStateOf("")
                     }
@@ -92,7 +123,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // INI PERBAIKANNYA: Menggunakan LaunchedEffect agar tidak terjadi "pemaksaan" state
+                    // LaunchedEffect agar tidak terjadi "pemaksaan" state
                     LaunchedEffect(loginState) {
                         when (val state = loginState) {
                             is LoginState.Success -> {
@@ -118,19 +149,13 @@ class MainActivity : ComponentActivity() {
                     }
 
                     when (currentScreen) {
-
                         Screen.LOGIN -> {
                             LoginScreen(
                                 onLoginClick = { email, password ->
                                     authViewModel.login(email, password)
                                 },
-
                                 onGoogleLoginClick = {
-                                    Toast.makeText(
-                                        context,
-                                        "Google Login diklik",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    googleSignInLauncher.launch(googleSignInClient.signInIntent)
                                 },
                                 onRegisterClick = {
                                     currentScreen = Screen.REGISTER
@@ -144,15 +169,12 @@ class MainActivity : ComponentActivity() {
                         Screen.FORGOT -> {
                             ForgotPasswordScreen(
                                 onSendResetClick = { email ->
-                                    authViewModel.resetPassword(email)
-
-                                    Toast.makeText(
-                                        context,
-                                        "Cek email Anda untuk reset password",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-
-                                    currentScreen = Screen.LOGIN
+                                    authViewModel.resetPassword(email) { isSuccess, message ->
+                                        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                                        if (isSuccess) {
+                                            currentScreen = Screen.LOGIN
+                                        }
+                                    }
                                 },
                                 onBackToLoginClick = {
                                     currentScreen = Screen.LOGIN
@@ -165,11 +187,9 @@ class MainActivity : ComponentActivity() {
                                 onRegisterClick = { name, email, password ->
                                     authViewModel.register(name, email, password)
                                 },
-
                                 onLoginClick = {
                                     currentScreen = Screen.LOGIN
                                 }
-
                             )
                         }
 
@@ -177,21 +197,16 @@ class MainActivity : ComponentActivity() {
                             DashboardScreen(
                                 viewModel = dashboardViewModel,
                                 profileViewModel = profileViewModel,
-
                                 onLogoutClick = {
                                     authViewModel.logout()
                                 },
-
                                 onAddGroupClick = {
                                     currentScreen = Screen.CREATE_GROUP
                                 },
-
                                 onJoinGroupClick = {
                                     currentScreen = Screen.JOIN_GROUP
                                 },
-
                                 currentScreen = currentScreen,
-
                                 onNavigate = { screen ->
                                     currentScreen = screen
                                 }
@@ -205,7 +220,6 @@ class MainActivity : ComponentActivity() {
                                 onBackClick = {
                                     currentScreen = Screen.DASHBOARD
                                 },
-
                                 onGroupCreated = { code ->
                                     inviteCode = code
                                     currentScreen = Screen.INVITE_QR
@@ -224,7 +238,6 @@ class MainActivity : ComponentActivity() {
                         Screen.INVITE_QR -> {
                             InviteQrScreen(
                                 inviteCode = inviteCode,
-
                                 onBackClick = {
                                     currentScreen = Screen.DASHBOARD
                                 }
@@ -232,23 +245,18 @@ class MainActivity : ComponentActivity() {
                         }
 
                         Screen.ACCOUNT -> {
-
                             val email by profileViewModel.email.collectAsState()
                             val password by profileViewModel.password.collectAsState()
                             val userId by profileViewModel.userId.collectAsState()
 
                             ProfileScreen(
-
                                 email = email,
                                 password = password,
                                 userId = userId,
-
                                 onLogoutClick = {
                                     authViewModel.logout()
                                 },
-
                                 currentScreen = currentScreen,
-
                                 onNavigate = { screen ->
                                     currentScreen = screen
                                 }

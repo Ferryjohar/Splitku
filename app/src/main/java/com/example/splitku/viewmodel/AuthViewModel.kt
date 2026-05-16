@@ -10,6 +10,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import com.google.firebase.auth.GoogleAuthProvider
 
 // Menggunakan AndroidViewModel agar punya akses ke application context
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
@@ -178,21 +179,75 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         _loginState.value = LoginState.Idle // Mengembalikan status ke Idle (kembali ke layar login)
     }
 
-    fun resetPassword(email: String) {
+    fun resetPassword(email: String, onResult: (Boolean, String) -> Unit) {
         if (email.isEmpty()) {
-            _loginState.value = LoginState.Error("Email tidak boleh kosong")
+            onResult(false, "Email tidak boleh kosong")
             return
         }
 
         auth.sendPasswordResetEmail(email)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    // Kita bisa menggunakan state khusus atau sekadar toast di UI
-                    _loginState.value = LoginState.Idle // Reset state agar tidak loading terus
+                    // Jika berhasil, kirim nilai true dan pesan sukses
+                    onResult(true, "Instruksi reset password telah dikirim ke email")
                 } else {
-                    _loginState.value = LoginState.Error(task.exception?.message ?: "Gagal mengirim email reset")
+                    // Jika gagal, kirim nilai false dan pesan error asli dari Firebase
+                    onResult(false, task.exception?.message ?: "Gagal mengirim email reset")
                 }
             }
+    }
+    fun firebaseAuthWithGoogle(idToken: String) {
+        _loginState.value = LoginState.Loading
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = auth.currentUser
+                    if (user != null) {
+                        // Cek apakah user ini sudah ada di database Firestore kita
+                        db.collection("users").document(user.uid).get()
+                            .addOnSuccessListener { document ->
+                                if (document.exists()) {
+                                    // Jika sudah pernah daftar, langsung sinkronisasi ke Room
+                                    syncUserFromFirestore(user.uid)
+                                } else {
+                                    // Jika ini user baru, buat profil dan custom ID (USR-XXXX)
+                                    createGoogleUserProfile(user.uid, user.displayName ?: "Google User", user.email ?: "")
+                                }
+                            }
+                    }
+                } else {
+                    _loginState.value = LoginState.Error(task.exception?.message ?: "Google Sign-In gagal")
+                }
+            }
+    }
+
+    // Fungsi pembantu untuk mendaftarkan user Google baru ke Firestore & Room
+    private fun createGoogleUserProfile(uid: String, name: String, email: String) {
+        db.collection("users").get().addOnSuccessListener { documents ->
+            val totalUsers = documents.size()
+            val customUserId = "USR-" + String.format("%04d", totalUsers + 1)
+
+            val userProfile = hashMapOf(
+                "uid" to uid,
+                "userId" to customUserId,
+                "name" to name,
+                "email" to email,
+                "createdAt" to System.currentTimeMillis()
+            )
+
+            db.collection("users").document(uid).set(userProfile).addOnSuccessListener {
+                viewModelScope.launch {
+                    userDao.insertUser(
+                        UserEntity(uid, customUserId, name, email, System.currentTimeMillis())
+                    )
+                    _loginState.value = LoginState.Success
+                }
+            }.addOnFailureListener { e ->
+                _loginState.value = LoginState.Error("Gagal simpan profil: ${e.message}")
+            }
+        }
     }
 }
 
