@@ -11,4 +11,5 @@ object Screen {
     const val ACCOUNT = "account"
     const val GROUPS = "groups"
     const val ACTIVITY = "activity"
+    const val QR = "qr"
 }

@@ -38,6 +38,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import androidx.activity.compose.BackHandler
+import com.example.splitku.ui.QrScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -279,6 +280,17 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+
+                        Screen.QR -> {
+                            val name by profileViewModel.name.collectAsState()
+                            QrScreen(
+                                username = name,
+                                onBackClick = {
+                                    currentScreen = Screen.ACCOUNT
+                                }
+                            )
+                        }
+
                     }
                 }
             }

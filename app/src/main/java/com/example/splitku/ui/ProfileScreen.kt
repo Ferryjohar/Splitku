@@ -18,8 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.splitku.ui.components.BottomNavBar
 import androidx.compose.material.icons.filled.QrCode
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
+import com.example.splitku.Screen
 
 @Composable
 fun ProfileScreen(
@@ -33,7 +32,6 @@ fun ProfileScreen(
 ) {
 
     val bluePrimary = Color(0xFF2563EB)
-    val context = LocalContext.current
 
     Scaffold(
 
@@ -144,11 +142,7 @@ fun ProfileScreen(
                         value = userId,
                         showQr = true,
                         onQrClick = {
-                            Toast.makeText(
-                                context,
-                                "QR Clicked!",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            onNavigate(Screen.QR)
                         }
                     )
 
