@@ -283,8 +283,10 @@ class MainActivity : ComponentActivity() {
 
                         Screen.QR -> {
                             val name by profileViewModel.name.collectAsState()
+                            val userId by profileViewModel.userId.collectAsState()
                             QrScreen(
                                 username = name,
+                                userId = userId,
                                 onBackClick = {
                                     currentScreen = Screen.ACCOUNT
                                 }

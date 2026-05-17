@@ -20,12 +20,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.runtime.remember
+import com.example.splitku.utils.generatorQrBitmap
 
 @Composable
 fun QrScreen(
     username: String,
+    userId: String,
     onBackClick: () -> Unit
 ) {
+
+    val qrBitmap = remember(userId) {
+        generatorQrBitmap(userId)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -122,11 +132,10 @@ fun QrScreen(
                                 modifier = Modifier.size(170.dp), // 🔥 lebih kecil lagi
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = "QR CODE",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.DarkGray
+                                Image(
+                                    bitmap = qrBitmap.asImageBitmap(),
+                                    contentDescription = "QR Code",
+                                    modifier = Modifier.fillMaxSize()
                                 )
                             }
                         }
